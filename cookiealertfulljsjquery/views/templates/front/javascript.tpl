@@ -21,64 +21,10 @@
 *}
 
 <script type="text/javascript">
-function closeCookiealertfulljsjqueryBar() {
-    jQuery('#cookiealertfulljsjqueryBar').hide();
-    if (prestashopModeDev == 1) {
-        console.log('Cookie Bar closed');
-    }
-}
 var prestashopModeDev = {if $smarty.const._PS_MODE_DEV_}1{else}0{/if};
 var cookieName = "{$cookieName}";
 var cookieForced = {if $cookieForced}1{else}0{/if};
 var cookieLang = "{$lang_iso}";
-if (jQuery.length > 0) {
-    jQuery(document).ready(function() {
-        if (prestashopModeDev == 1) {
-            console.log('Starting cookie alert module');
-        }
-
-        // If cookie exists, nothing to do
-        if (typeof jQuery.cookie(cookieName) != 'undefined' && jQuery.cookie(cookieName).length > 0 && cookieForced != 1) {
-            if (prestashopModeDev == 1) {
-                console.log('Cookie exists, nothing to do');
-            }
-        }
-        // Display Cookie Alert Bar
-        else {
-            function addCookieAlertDivToBody(html) {
-                if (html.length > 0) {
-                    jQuery('body').append('<div id="cookiealertfulljsjqueryBar">' + html + '</div>');
-                    if (prestashopModeDev == 1) {
-                        console.log('Cookie Alert Bar added to body');
-                    }
-                }
-            }
-            function addCookie() {
-                // Create the cookie, for 1 year
-                jQuery.cookie(cookieName, jQuery.now(), { expires: 365 });
-                if (prestashopModeDev == 1) {
-                    console.log('Cookie added');
-                }
-            }
-
-            jQuery.ajax({
-                method: "POST",
-                url: "{$smarty.const._PS_BASE_URL_|escape:'htmlall':'UTF-8'}{$smarty.const.__PS_BASE_URI__|escape:'htmlall':'UTF-8'}modules/cookiealertfulljsjquery/cookiealertbar.php",
-                cache: false,
-                dataType: "html",
-                success: function(data) {
-                    addCookieAlertDivToBody(data);
-                    addCookie();
-                }
-            });
-        }
-
-        if (prestashopModeDev == 1) {
-            console.log('Ending cookie alert module');
-        }
-    });
-}
-else {
-    console.log('Cookie Alert in JS/jQuery needs jQuery to work');
-}
+var cookieAlertPath = "{$smarty.const.__PS_BASE_URI__|escape:'htmlall':'UTF-8'}";
+var cookieAjaxBarContentURL = "{$smarty.const._PS_BASE_URL_|escape:'htmlall':'UTF-8'}{$smarty.const.__PS_BASE_URI__|escape:'htmlall':'UTF-8'}modules/cookiealertfulljsjquery/cookiealertbar.php";
 </script>

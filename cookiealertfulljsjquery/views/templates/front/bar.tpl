@@ -23,6 +23,6 @@
 <div style="position:fixed;z-index:2000;display:block;width:100%;{$cookieBarPosition}:0;margin:auto;{$cookieBarStyles}">
     <p style="{$cookieTextStyles}">
         {$cookieText}
-        <a href="javascript:closeCookiealertfulljsjqueryBar();" style="{$cookieCloseButtonStyles}">{$cookieButtonText}</a>
+        <a href="javascript:closeCookiealertfulljsjqueryBar();" style="text-decoration:none;{$cookieCloseButtonStyles}">{$cookieButtonText}</a>
     </p>
 </div>

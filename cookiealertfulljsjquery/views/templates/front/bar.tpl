@@ -20,7 +20,7 @@
 *  @author    eworld Accelerator <prestashop@eworld-accelerator.com>
 *}
 
-<div style="{$cookieBarStyles}" style="position:absolute;{$cookieBarPosition}:0;margin:auto;">
+<div style="position:fixed;z-index:2000;display:block;width:100%;{$cookieBarPosition}:0;margin:auto;{$cookieBarStyles}">
     <p style="{$cookieTextStyles}">
         {$cookieText}
         <a href="javascript:closeCookiealertfulljsjqueryBar();" style="{$cookieCloseButtonStyles}">{$cookieButtonText}</a>

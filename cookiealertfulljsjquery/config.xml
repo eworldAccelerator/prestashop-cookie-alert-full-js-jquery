@@ -4,7 +4,7 @@
 	<displayName><![CDATA[Cookie Alert in JS/jQuery]]></displayName>
 	<version><![CDATA[0.1.0]]></version>
 	<description><![CDATA[This module displays the legal cookies use alert at the top or at the bottom of the page. It's fully written in JavaScript/jQuery to be fully compatible with a cache system]]></description>
-	<author><![CDATA[eworld Acceleraotor]]></author>
+	<author><![CDATA[eworld Accelerator]]></author>
 	<tab><![CDATA[administration]]></tab>
 	<is_configurable>1</is_configurable>
 	<need_instance>0</need_instance>

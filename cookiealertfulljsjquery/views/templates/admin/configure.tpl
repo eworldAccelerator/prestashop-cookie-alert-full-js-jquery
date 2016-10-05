@@ -36,8 +36,9 @@
 	<div class="moduleconfig-content">
 		<div class="row">
 			<div class="col-xs-12">
-				<p><strong>Cookie Alert in JS/jQuery</strong> replace dynamic content in page delivered via cache (static) systems.</p>
-				<p>You have to delete all the cache before using this module because this module adds a Javascript file to the FrontOffice.</p>
+				<p><strong>Cookie Alert in JS/jQuery</strong> handle for you the EU cookie compliance.</p>
+				<p>You have to configure text and styles for the alert displayed on your website.</p>
+                <p>This module is completly compatible with a cache system, thanks to its full JavaScript write.</p>
 			</div>
 		</div>
 	</div>

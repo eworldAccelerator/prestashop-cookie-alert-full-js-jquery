@@ -31,8 +31,8 @@ if (isset($smarty) && isset($cookie)) {
     $cookieBarStyles = Configuration::get('EACC_COOKIE_JQUERY_BAR_STYLES');
     $cookieTextStyles = Configuration::get('EACC_COOKIE_JQUERY_TEXT_STYLES');
     $cookieCloseButtonStyles = Configuration::get('EACC_COOKIE_JQUERY_BUTTON_STYLES');
-    $cookieTextList = Configuration::get('EACC_COOKIE_JQUERY_TEXT');
-    $cookieButtonTextList = Configuration::get('EACC_COOKIE_JQUERY_BUTTON_TEXT');
+    $cookieTextList = @unserialize(base64_decode(Configuration::get('EACC_COOKIE_JQUERY_TEXT')));
+    $cookieButtonTextList = @unserialize(base64_decode(Configuration::get('EACC_COOKIE_JQUERY_BUTTON_TEXT')));
     $iso_code = Language::getIsoById( (int)$cookie->id_lang );
 
     $smarty->assign(array(
@@ -43,5 +43,5 @@ if (isset($smarty) && isset($cookie)) {
         'cookieText' => $cookieTextList[$iso_code],
         'cookieButtonText' => $cookieButtonTextList[$iso_code],
     ));
-    $smarty->display(dirname(__FILE__) . 'views/templates/front/bar.tpl');
+    $smarty->display(dirname(__FILE__) . '/views/templates/front/bar.tpl');
 }

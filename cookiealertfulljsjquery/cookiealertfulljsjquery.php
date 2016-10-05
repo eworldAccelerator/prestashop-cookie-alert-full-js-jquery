@@ -28,13 +28,14 @@ if (!defined('_PS_VERSION_')) {
 class CookieAlertFullJsJquery extends Module
 {
     protected $config_form = false;
+    protected $header_triggered = false;
 
     public function __construct()
     {
         $this->name = 'cookiealertfulljsjquery';
         $this->tab = 'administration';
         $this->version = '0.1.0';
-        $this->author = 'eworld Acceleraotor';
+        $this->author = 'eworld Accelerator';
         $this->need_instance = 0;
 
         /**
@@ -55,18 +56,19 @@ class CookieAlertFullJsJquery extends Module
     public function install()
     {
         Configuration::updateValue('EACC_COOKIE_JQUERY_ACTIVE', 2);
+        Configuration::updateValue('EACC_COOKIE_JQUERY_NAME', 'EACC_ALERTCOOKIE_JS');
         Configuration::updateValue('EACC_COOKIE_JQUERY_TEST_IP', '');
         Configuration::updateValue('EACC_COOKIE_JQUERY_BAR_POSITION', 'top');
         Configuration::updateValue('EACC_COOKIE_JQUERY_BAR_STYLES', 'background:black;color:white;padding:8px 30px;');
-        Configuration::updateValue('EACC_COOKIE_JQUERY_TEXT', array(
+        Configuration::updateValue('EACC_COOKIE_JQUERY_TEXT', base64_encode(serialize(array(
             'fr'=>'En poursuivant votre navigation sur ce site, vous acceptez l\'utilisation de cookies pour vous proposer des contenus et services adaptés à vos centres d\'intérêts.',
             'en'=>'Our website uses cookies. By continuing we assume your permission to deploy cookies in order to give you services and contents adapted to your centers of interest',
-        ));
+        ))));
         Configuration::updateValue('EACC_COOKIE_JQUERY_TEXT_STYLES', 'color:white;font-family:Arial;font-size:11px;text-align:center;');
-        Configuration::updateValue('EACC_COOKIE_JQUERY_BUTTON_TEXT', array(
+        Configuration::updateValue('EACC_COOKIE_JQUERY_BUTTON_TEXT', base64_encode(serialize(array(
             'fr'=>'Fermer',
             'en'=>'Close'
-        ));
+        ))));
         Configuration::updateValue('EACC_COOKIE_JQUERY_BUTTON_STYLES', 'border-radius:4px;padding:4px 8px;background:#AAA;color:white;font-weight:bold;');
 
         return parent::install() &&
@@ -76,7 +78,15 @@ class CookieAlertFullJsJquery extends Module
 
     public function uninstall()
     {
-        Configuration::deleteByName('EACC_COOKIE_JQUERY_LIVE_MODE');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_ACTIVE');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_TEST_IP');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_BAR_POSITION');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_BAR_STYLES');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_TEXT');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_TEXT_STYLES');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_BUTTON_TEXT');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_BUTTON_STYLES');
+        Configuration::deleteByName('EACC_COOKIE_JQUERY_NAME');
 
         return parent::uninstall();
     }
@@ -177,6 +187,13 @@ class CookieAlertFullJsJquery extends Module
                         'label' => $this->l('Test mode IP'),
                     ),
                     array(
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-bullseye"></i>',
+                        'desc' => $this->l('The name of the cookie used to know if EU Cookie Alert has been displayed or not to the client'),
+                        'name' => 'EACC_COOKIE_JQUERY_NAME',
+                        'label' => $this->l('Cookie name'),
+                    ),
+                    array(
                         'type' => 'radio',
                         'label' => $this->l('Bar Position'),
                         'name' => 'EACC_COOKIE_JQUERY_BAR_POSITION',
@@ -258,16 +275,17 @@ class CookieAlertFullJsJquery extends Module
      */
     protected function getConfigFormValues()
     {
-        $textTranslations = Configuration::get('EACC_COOKIE_JQUERY_TEXT');
+        $textTranslations = @unserialize(base64_decode(Configuration::get('EACC_COOKIE_JQUERY_TEXT')));
         if (!is_array($textTranslations) || !array_key_exists('fr', $textTranslations)) {
             $textTranslations = array('fr'=>'', 'en'=>'');
         }
-        $buttonTranslations = Configuration::get('EACC_COOKIE_JQUERY_BUTTON_TEXT');
+        $buttonTranslations = @unserialize(base64_decode(Configuration::get('EACC_COOKIE_JQUERY_BUTTON_TEXT')));
         if (!is_array($buttonTranslations) || !array_key_exists('fr', $buttonTranslations)) {
             $buttonTranslations = array('fr'=>'', 'en'=>'');
         }
         return array(
             'EACC_COOKIE_JQUERY_ACTIVE' => Configuration::get('EACC_COOKIE_JQUERY_ACTIVE'),
+            'EACC_COOKIE_JQUERY_NAME' => Configuration::get('EACC_COOKIE_JQUERY_NAME'),
             'EACC_COOKIE_JQUERY_TEST_IP' => Configuration::get('EACC_COOKIE_JQUERY_TEST_IP'),
             'EACC_COOKIE_JQUERY_BAR_POSITION' => Configuration::get('EACC_COOKIE_JQUERY_BAR_POSITION'),
             'EACC_COOKIE_JQUERY_BAR_STYLES' => Configuration::get('EACC_COOKIE_JQUERY_BAR_STYLES'),
@@ -324,6 +342,13 @@ class CookieAlertFullJsJquery extends Module
                     }
                 }
             }
+            else if (substr($currentIndex, -3) == '_FR' || substr($currentIndex, -3) == '_EN') {
+                $currentRealIndex = substr($currentIndex, 0, -3);
+                $currentRealValue = unserialize(base64_decode(trim(Configuration::get($currentRealIndex))));
+                $currentLang = strtolower(substr($currentIndex, -2));
+                $currentRealValue[$currentLang] = $postValue;
+                Configuration::updateValue($currentRealIndex, base64_encode(serialize($currentRealValue)));
+            }
             else {
                 if ($postValue == '') {
                     $oneEmptyField = true;
@@ -344,25 +369,30 @@ class CookieAlertFullJsJquery extends Module
      */
     public function hookHeader()
     {
-        if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-            $this->context->controller->addJS($this->_path.'/views/js/jquery.cookie.js');
+        if ($this->isFrontEnabled()) {
+            if (!$this->header_triggered) {
+                if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                    $this->context->controller->addJS($this->_path . '/views/js/jquery.cookie.js');
+                } else {
+                    $this->context->controller->addJS($this->_path . '/views/js/jquery.cookie.min.js');
+                }
+                $this->context->controller->addJS($this->_path . '/views/js/front.js');
+                $this->header_triggered = true;
+            }
         }
-        else {
-            $this->context->controller->addJS($this->_path.'/views/js/jquery.cookie.min.js');
-        }
-        $this->context->controller->addJS($this->_path.'/views/js/front.js');
-
-        // Add script element on head, to configure the cookie JS alert
-        $this->context->smarty->assign(array(
-           'cookieName' => Configuration::get('EACC_COOKIE_JQUERY_NAME'),
-           'cookieForced' => isset($_GET['force_eacc_cookie']) && $_GET['force_eacc_cookie'] == 1,
-        ));
-        $this->smarty->display($this->local_path . 'views/templates/front/javascript.tpl');
     }
 
     public function hookDisplayHeader()
     {
-        $this->hookHeader();
+        if ($this->isFrontEnabled()) {
+            $this->hookHeader();
+            // Add script element on head, to configure the cookie JS alert
+            $this->context->smarty->assign(array(
+                'cookieName' => Configuration::get('EACC_COOKIE_JQUERY_NAME'),
+                'cookieForced' => isset($_GET['force_eacc_cookie']) && $_GET['force_eacc_cookie'] == 1,
+            ));
+            return $this->display(__FILE__, 'javascript.tpl');
+        }
     }
 
     /**
@@ -371,5 +401,11 @@ class CookieAlertFullJsJquery extends Module
      */
     private static function isValidIpAddress($ip) {
         return !filter_var($ip, FILTER_VALIDATE_IP) === false;
+    }
+
+    private function isFrontEnabled() {
+        $enabled = (int) trim(Configuration::get('EACC_COOKIE_JQUERY_ACTIVE'));
+        // enabled or restricted to configured IP
+        return $enabled == 1 || $enabled == 3 && $_SERVER['REMOTE_ADDR'] == trim(Configuration::get('EACC_COOKIE_JQUERY_TEST_IP'));
     }
 }
